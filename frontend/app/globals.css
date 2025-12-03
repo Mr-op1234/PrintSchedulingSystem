@@ -1,0 +1,82 @@
+/*
+ * AURORA PULSE THEME
+ * A futuristic, immersive theme inspired by aurora borealis
+ * with gradient backgrounds, glassmorphism, and animated glows.
+ */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+:root {
+  /* Aurora Pulse - Light Mode */
+  --bg-primary: #e0f2fe;
+  --bg-secondary: #f0f9ff;
+  --text-color: #0f172a;
+  --text-muted: #475569;
+  
+  /* Aurora Accent Colors */
+  --aurora-cyan: #00d4ff;
+  --aurora-purple: #a855f7;
+  --aurora-pink: #ec4899;
+  --aurora-gradient: linear-gradient(135deg, #00d4ff 0%, #a855f7 100%);
+  
+  /* Glass Effect */
+  --glass-bg: rgba(255, 255, 255, 0.7);
+  --glass-border: rgba(0, 212, 255, 0.3);
+  --glass-shadow: 0 8px 32px rgba(0, 212, 255, 0.1);
+  
+  /* Cards */
+  --card-bg: rgba(255, 255, 255, 0.8);
+  --card-border: rgba(0, 212, 255, 0.4);
+  --card-glow: rgba(0, 212, 255, 0.2);
+  
+  /* Buttons */
+  --button-bg: rgba(0, 212, 255, 0.1);
+  --button-hover: rgba(0, 212, 255, 0.2);
+  --button-border: rgba(0, 212, 255, 0.5);
+}
+
+[data-theme='dark'] {
+  /* Aurora Pulse - Dark Mode */
+  --bg-primary: #050d1a;
+  --bg-secondary: #0f172a;
+  --text-color: #f1f5f9;
+  --text-muted: #94a3b8;
+  
+  /* Aurora Accent Colors - Brighter for dark mode */
+  --aurora-cyan: #00f0ff;
+  --aurora-purple: #c084fc;
+  --aurora-pink: #f472b6;
+  --aurora-gradient: linear-gradient(135deg, #00f0ff 0%, #c084fc 100%);
+  
+  /* Glass Effect - Dark */
+  --glass-bg: rgba(15, 23, 42, 0.6);
+  --glass-border: rgba(0, 240, 255, 0.2);
+  --glass-shadow: 0 8px 32px rgba(0, 240, 255, 0.1);
+  
+  /* Cards - Dark */
+  --card-bg: rgba(15, 23, 42, 0.5);
+  --card-border: rgba(0, 240, 255, 0.3);
+  --card-glow: rgba(0, 240, 255, 0.15);
+  
+  /* Buttons - Dark */
+  --button-bg: rgba(0, 240, 255, 0.1);
+  --button-hover: rgba(0, 240, 255, 0.2);
+  --button-border: rgba(0, 240, 255, 0.4);
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  min-height: 100vh;
+  background: var(--bg-primary);
+  color: var(--text-color);
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  transition: background 0.4s ease, color 0.4s ease;
+  overflow-x: hidden;
+  position: relative;
+}

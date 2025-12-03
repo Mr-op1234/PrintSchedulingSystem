@@ -2,10 +2,16 @@
 __pycache__/
 *.py[codz]
 *$py.class
-
+/backend/include
+/backend/lib
+/backend/scripts
+/backend/pyvenv.cfg
+/backend/*.db
+memory.md
+/.vscode
 # C extensions
 *.so
-
+frontend/node_modules
 # Distribution / packaging
 .Python
 build/
