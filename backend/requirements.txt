@@ -5,3 +5,5 @@ uvicorn
 PyPDF2
 python-multipart
 reportlab
+pytesseract
+Pillow

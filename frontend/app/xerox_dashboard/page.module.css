@@ -500,6 +500,30 @@
   margin-bottom: 0.75rem;
 }
 
+.transactionId {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  margin-bottom: 0.75rem;
+}
+
+.txnLabel {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #10b981;
+}
+
+.txnValue {
+  font-family: monospace;
+  font-size: 0.9rem;
+  color: var(--text-color);
+  letter-spacing: 0.5px;
+}
+
 .orderFooter {
   display: flex;
   justify-content: space-between;

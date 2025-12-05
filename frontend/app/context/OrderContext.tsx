@@ -41,10 +41,6 @@ interface OrderContextType {
     setTotalPages: (pages: number) => void
     estimatedCost: number
     
-    // UPI
-    upiId: string
-    setUpiId: (upi: string) => void
-    
     // Reset
     resetOrder: () => void
 }
@@ -68,7 +64,6 @@ export function OrderProvider({ children }: { children: ReactNode }) {
     const [printConfig, setPrintConfig] = useState<PrintConfig>(defaultPrintConfig)
     const [studentInfo, setStudentInfo] = useState<StudentInfo>(defaultStudentInfo)
     const [totalPages, setTotalPages] = useState(0)
-    const [upiId, setUpiId] = useState('')
 
     const addFiles = (newFiles: UploadedFile[]) => {
         setFiles(prev => [...prev, ...newFiles])
@@ -99,7 +94,6 @@ export function OrderProvider({ children }: { children: ReactNode }) {
         setPrintConfig(defaultPrintConfig)
         setStudentInfo(defaultStudentInfo)
         setTotalPages(0)
-        setUpiId('')
     }
 
     return (
@@ -116,8 +110,6 @@ export function OrderProvider({ children }: { children: ReactNode }) {
             totalPages,
             setTotalPages,
             estimatedCost,
-            upiId,
-            setUpiId,
             resetOrder
         }}>
             {children}

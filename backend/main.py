@@ -24,6 +24,8 @@ from store_merged_pdf import (
 )
 from create_frontpage import create_frontpage
 from stop_service import get_service_status, stop_service, start_service, is_service_active
+from ocr_verification import verify_payment_screenshot
+from xerox_config import MANAGER_UPI_ID
 from datetime import datetime
 
 app = FastAPI(
@@ -66,7 +68,7 @@ async def create_print_order(
     print_sides: str = Form(default="single"),
     copies: int = Form(default=1),
     instructions: str = Form(default=""),
-    upi_id: str = Form(default="")
+    transaction_id: str = Form(default="")
 ):
     """
     Create a new print order.
@@ -159,7 +161,7 @@ async def create_print_order(
             copies=copies,
             instructions=instructions,
             original_filenames=json.dumps(filenames),
-            upi_id=upi_id
+            transaction_id=transaction_id
         )
     except Exception as e:
         raise HTTPException(500, f"Failed to save order: {str(e)}")
@@ -202,7 +204,8 @@ async def list_orders(status: Optional[str] = None):
                 "status": order.status,
                 "created_at": order.created_at.isoformat(),
                 "instructions": order.instructions,
-                "original_filenames": json.loads(order.original_filenames or "[]")
+                "original_filenames": json.loads(order.original_filenames or "[]"),
+                "transaction_id": order.transaction_id
             }
             for order in orders
         ]
@@ -293,6 +296,64 @@ async def get_stats():
     return {
         "pending_count": stats["pending_count"],
         "completed_today": stats["completed_today"]
+    }
+
+
+# ==================== PAYMENT VERIFICATION ENDPOINTS ====================
+
+@app.post("/api/verify-payment")
+async def verify_payment(screenshot: UploadFile = File(...)):
+    """
+    Verify a UPI payment screenshot using OCR.
+    
+    Extracts and validates:
+    1. Transaction ID / UPI Reference Number
+    2. Receiver's name (must match xerox manager)
+    3. Phone number (must match xerox manager's phone)
+    
+    Returns the extracted transaction ID if valid, or error messages if not.
+    """
+    # Check file type (images only)
+    allowed_types = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp']
+    if screenshot.content_type not in allowed_types:
+        raise HTTPException(400, "Only image files (JPEG, PNG, WebP) are allowed")
+    
+    # Read image content
+    try:
+        image_data = await screenshot.read()
+    except Exception as e:
+        raise HTTPException(400, f"Failed to read image: {str(e)}")
+    
+    # Check file size (max 10MB for screenshots)
+    if len(image_data) > 10 * 1024 * 1024:
+        raise HTTPException(400, "Screenshot size exceeds 10MB limit")
+    
+    # Verify using OCR
+    try:
+        result = verify_payment_screenshot(image_data)
+    except Exception as e:
+        raise HTTPException(500, f"OCR verification failed: {str(e)}")
+    
+    if result.is_valid:
+        return {
+            "success": True,
+            "transaction_id": result.transaction_id,
+            "message": "Payment verified successfully"
+        }
+    else:
+        return {
+            "success": False,
+            "transaction_id": None,
+            "errors": result.errors,
+            "message": "Payment verification failed"
+        }
+
+
+@app.get("/api/payment/upi-id")
+async def get_payment_upi_id():
+    """Get the xerox manager's UPI ID for students to pay to"""
+    return {
+        "upi_id": MANAGER_UPI_ID
     }
 
 

@@ -51,8 +51,9 @@ class PrintOrder(Base):
     completed_at = Column(DateTime, nullable=True)
     
     # Payment
-    upi_id = Column(String, nullable=True)
-    payment_status = Column(String, default="pending")  # pending, completed
+    transaction_id = Column(String, nullable=True)  # Extracted from UPI screenshot via OCR
+    payment_verified = Column(Boolean, default=False)  # Verified by xerox staff
+    payment_status = Column(String, default="pending")  # pending, verified, completed
 
 
 # Create tables
@@ -90,7 +91,7 @@ def create_order(
     copies: int = 1,
     instructions: str = "",
     original_filenames: str = "[]",
-    upi_id: str = ""
+    transaction_id: str = ""
 ) -> PrintOrder:
     """Create a new print order with merged PDF"""
     
@@ -120,7 +121,7 @@ def create_order(
             merged_pdf=merged_pdf,
             file_size=file_size,
             original_filenames=original_filenames,
-            upi_id=upi_id
+            transaction_id=transaction_id
         )
         db.add(order)
         db.commit()

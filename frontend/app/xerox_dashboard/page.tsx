@@ -399,6 +399,12 @@ export default function XeroxDashboard() {
                                             <span>{order.print_sides === 'double' ? 'Double' : 'Single'}</span>
                                             <span className={styles.orderCost}>₹{order.estimated_cost.toFixed(2)}</span>
                                         </div>
+                                        {order.transaction_id && (
+                                            <div className={styles.transactionId}>
+                                                <span className={styles.txnLabel}>TXN ID:</span>
+                                                <span className={styles.txnValue}>{order.transaction_id}</span>
+                                            </div>
+                                        )}
                                         {order.instructions && (
                                             <div className={styles.orderInstructions}>
                                                 <strong>Note:</strong> {order.instructions}
