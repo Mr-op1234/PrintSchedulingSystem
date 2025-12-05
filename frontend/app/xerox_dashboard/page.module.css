@@ -606,9 +606,178 @@
   gap: 0.35rem;
 }
 
+/* Service Status Card */
+.serviceCard {
+  grid-column: span 2;
+}
+
+.serviceStatus {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.statusIndicator {
+  font-size: 1rem;
+  font-weight: 700;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+}
+
+.statusIndicator.active {
+  color: #10b981;
+  background: rgba(16, 185, 129, 0.15);
+}
+
+.statusIndicator.inactive {
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.15);
+  animation: pulse 2s infinite;
+}
+
+.serviceToggle {
+  padding: 0.6rem 1.25rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+}
+
+.serviceToggle.stopBtn {
+  background: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.serviceToggle.stopBtn:hover {
+  background: rgba(239, 68, 68, 0.3);
+}
+
+.serviceToggle.startBtn {
+  background: rgba(16, 185, 129, 0.2);
+  color: #10b981;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.serviceToggle.startBtn:hover {
+  background: rgba(16, 185, 129, 0.3);
+}
+
+.serviceToggle:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Modal */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+}
+
+.modal {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 16px;
+  padding: 1.5rem;
+  width: 90%;
+  max-width: 450px;
+  backdrop-filter: blur(16px);
+}
+
+.modalTitle {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-color);
+  margin: 0 0 0.5rem 0;
+}
+
+.modalText {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  margin: 0 0 1rem 0;
+}
+
+.modalInput {
+  width: 100%;
+  padding: 0.75rem;
+  background: var(--bg-primary);
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  color: var(--text-color);
+  font-size: 0.9rem;
+  resize: vertical;
+  margin-bottom: 1rem;
+}
+
+.modalInput:focus {
+  outline: none;
+  border-color: var(--aurora-cyan);
+}
+
+.modalActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
+.modalCancel {
+  padding: 0.6rem 1.25rem;
+  background: var(--button-bg);
+  color: var(--text-color);
+  border: 1px solid var(--button-border);
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.modalCancel:hover {
+  background: var(--button-hover);
+}
+
+.modalConfirm {
+  padding: 0.6rem 1.25rem;
+  background: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.modalConfirm:hover {
+  background: rgba(239, 68, 68, 0.3);
+}
+
+.modalConfirm:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 @media (max-width: 768px) {
   .statsContainer {
     grid-template-columns: 1fr;
+  }
+
+  .serviceCard {
+    grid-column: span 1;
+  }
+
+  .serviceStatus {
+    flex-direction: column;
+    align-items: flex-start;
   }
   
   .queueHeader {

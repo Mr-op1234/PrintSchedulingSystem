@@ -11,6 +11,7 @@ memory.md
 /.vscode
 # C extensions
 *.so
+security patches.md
 frontend/node_modules
 # Distribution / packaging
 .Python

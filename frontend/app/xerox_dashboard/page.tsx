@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import styles from './page.module.css'
-import { getOrders, getStats, downloadOrderPdf, markComplete, markNotComplete, deleteOrder, formatFileSize, Order } from '../lib/api'
+import { getOrders, getStats, downloadOrderPdf, markComplete, markNotComplete, deleteOrder, formatFileSize, Order, getServiceStatus, stopService, startService } from '../lib/api'
 
 const ClipboardIcon = () => (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -50,6 +50,13 @@ const LockIcon = () => (
     </svg>
 )
 
+const PowerIcon = () => (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M18.36 6.64a9 9 0 1 1-12.73 0" />
+        <line x1="12" y1="2" x2="12" y2="12" />
+    </svg>
+)
+
 export default function XeroxDashboard() {
     const [theme, setTheme] = useState<'light' | 'dark'>('dark')
     const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null)
@@ -59,17 +66,22 @@ export default function XeroxDashboard() {
     const [isLoading, setIsLoading] = useState(true)
     const [error, setError] = useState('')
     const [processingAction, setProcessingAction] = useState<string | null>(null)
+    const [serviceActive, setServiceActive] = useState(true)
+    const [stopMessage, setStopMessage] = useState('Xerox service is temporarily unavailable. Please try again later.')
+    const [showStopModal, setShowStopModal] = useState(false)
     const router = useRouter()
 
     const fetchData = useCallback(async () => {
         try {
             setIsLoading(true)
-            const [ordersData, statsData] = await Promise.all([
+            const [ordersData, statsData, serviceStatus] = await Promise.all([
                 getOrders('pending'),
-                getStats()
+                getStats(),
+                getServiceStatus()
             ])
             setOrders(ordersData.orders)
             setStats(statsData)
+            setServiceActive(serviceStatus.is_active)
             setError('')
         } catch (err) {
             setError('Failed to fetch data. Is the backend running?')
@@ -163,6 +175,39 @@ export default function XeroxDashboard() {
         }
     }
 
+    const handleToggleService = async () => {
+        if (serviceActive) {
+            // Show modal to get stop message
+            setShowStopModal(true)
+        } else {
+            // Start service directly
+            try {
+                setProcessingAction('service')
+                await startService()
+                setServiceActive(true)
+            } catch (err: unknown) {
+                const message = err instanceof Error ? err.message : 'Failed to start service'
+                setError(message)
+            } finally {
+                setProcessingAction(null)
+            }
+        }
+    }
+
+    const handleConfirmStop = async () => {
+        try {
+            setProcessingAction('service')
+            await stopService(stopMessage)
+            setServiceActive(false)
+            setShowStopModal(false)
+        } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : 'Failed to stop service'
+            setError(message)
+        } finally {
+            setProcessingAction(null)
+        }
+    }
+
     const filteredOrders = orders.filter(order => 
         order.student_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         order.student_id.toLowerCase().includes(searchQuery.toLowerCase())
@@ -233,7 +278,58 @@ export default function XeroxDashboard() {
                             <span className={styles.statUnit}>jobs</span>
                         </div>
                     </div>
+
+                    <div className={`${styles.statCard} ${styles.serviceCard}`}>
+                        <div className={styles.statHeader}>
+                            <span className={styles.statIcon}><PowerIcon /></span>
+                            <span className={styles.statLabel}>Service Status</span>
+                        </div>
+                        <div className={styles.serviceStatus}>
+                            <span className={`${styles.statusIndicator} ${serviceActive ? styles.active : styles.inactive}`}>
+                                {serviceActive ? '● ACTIVE' : '● STOPPED'}
+                            </span>
+                            <button 
+                                className={`${styles.serviceToggle} ${serviceActive ? styles.stopBtn : styles.startBtn}`}
+                                onClick={handleToggleService}
+                                disabled={processingAction === 'service'}
+                            >
+                                {serviceActive ? 'Stop Service' : 'Start Service'}
+                            </button>
+                        </div>
+                    </div>
                 </div>
+
+                {/* Stop Service Modal */}
+                {showStopModal && (
+                    <div className={styles.modalOverlay}>
+                        <div className={styles.modal}>
+                            <h3 className={styles.modalTitle}>Stop Service</h3>
+                            <p className={styles.modalText}>Enter a message to display to students:</p>
+                            <textarea
+                                className={styles.modalInput}
+                                value={stopMessage}
+                                onChange={(e) => setStopMessage(e.target.value)}
+                                placeholder="Xerox service is temporarily unavailable..."
+                                rows={3}
+                            />
+                            <div className={styles.modalActions}>
+                                <button 
+                                    className={styles.modalCancel} 
+                                    onClick={() => setShowStopModal(false)}
+                                >
+                                    Cancel
+                                </button>
+                                <button 
+                                    className={styles.modalConfirm}
+                                    onClick={handleConfirmStop}
+                                    disabled={processingAction === 'service'}
+                                >
+                                    Stop Service
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
 
                 {error && (
                     <div className={styles.errorBanner}>

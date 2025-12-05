@@ -23,6 +23,7 @@ from store_merged_pdf import (
     delete_order
 )
 from create_frontpage import create_frontpage
+from stop_service import get_service_status, stop_service, start_service, is_service_active
 from datetime import datetime
 
 app = FastAPI(
@@ -77,6 +78,14 @@ async def create_print_order(
     4. Merge all PDFs (front page FIRST, then user files in order)
     5. Store only the merged PDF in database
     """
+    
+    # Check if service is accepting orders
+    if not is_service_active():
+        status = get_service_status()
+        raise HTTPException(
+            503, 
+            detail=status.get("message", "Xerox service is temporarily unavailable. Please try again later.")
+        )
     
     # Validate file count
     if len(files) > MAX_FILES:
@@ -285,6 +294,29 @@ async def get_stats():
         "pending_count": stats["pending_count"],
         "completed_today": stats["completed_today"]
     }
+
+
+# ==================== SERVICE STATUS ENDPOINTS ====================
+
+@app.get("/api/service/status")
+async def service_status():
+    """Get current service status"""
+    status = get_service_status()
+    return status
+
+
+@app.post("/api/service/stop")
+async def stop_xerox_service(message: str = Form(default="Xerox service is temporarily unavailable. Please try again later.")):
+    """Stop the service from accepting new orders (Xerox staff only)"""
+    status = stop_service(message)
+    return {"success": True, "status": status}
+
+
+@app.post("/api/service/start")
+async def start_xerox_service():
+    """Resume the service to accept orders (Xerox staff only)"""
+    status = start_service()
+    return {"success": True, "status": status}
 
 
 if __name__ == "__main__":
