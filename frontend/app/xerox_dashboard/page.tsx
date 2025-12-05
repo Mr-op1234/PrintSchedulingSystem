@@ -139,10 +139,16 @@ export default function XeroxDashboard() {
             const a = document.createElement('a')
             a.href = url
             a.download = `${studentName.replace(/\s+/g, '_')}_print_order.pdf`
+            a.style.display = 'none'
             document.body.appendChild(a)
             a.click()
-            window.URL.revokeObjectURL(url)
-            document.body.removeChild(a)
+            // Clean up after a short delay to ensure download starts
+            setTimeout(() => {
+                window.URL.revokeObjectURL(url)
+                if (a.parentNode) {
+                    a.parentNode.removeChild(a)
+                }
+            }, 100)
         } catch (err: unknown) {
             const message = err instanceof Error ? err.message : 'Failed to download PDF'
             if (message === 'Authentication required') {
