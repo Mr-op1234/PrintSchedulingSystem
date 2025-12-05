@@ -52,16 +52,27 @@ def get_total_pages(pdf_bytes_list: List[bytes]) -> int:
     return total
 
 
-def validate_pdf(pdf_bytes: bytes) -> Tuple[bool, str]:
+def validate_pdf(pdf_bytes: bytes, max_pages: int = 500) -> Tuple[bool, str]:
     """
     Validate that the bytes represent a valid PDF.
+    
+    Args:
+        pdf_bytes: Raw PDF file bytes
+        max_pages: Maximum allowed pages per file (default 500)
     
     Returns:
         (is_valid, error_message)
     """
     try:
         reader = PdfReader(BytesIO(pdf_bytes))
-        _ = len(reader.pages)  # Try to read pages
+        page_count = len(reader.pages)
+        
+        if page_count == 0:
+            return False, "PDF has no pages"
+        
+        if page_count > max_pages:
+            return False, f"PDF exceeds maximum of {max_pages} pages (has {page_count} pages)"
+        
         return True, ""
     except Exception as e:
-        return False, str(e)
+        return False, f"Invalid PDF: {str(e)}"

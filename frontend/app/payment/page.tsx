@@ -250,7 +250,6 @@ export default function Payment() {
                                 <span className={styles.verifiedIcon}>✓</span>
                                 <div>
                                     <p className={styles.verifiedText}>Payment Verified!</p>
-                                    <p className={styles.transactionId}>TXN ID: {transactionId}</p>
                                 </div>
                             </div>
                         )}

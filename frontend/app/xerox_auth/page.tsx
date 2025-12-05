@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import styles from './page.module.css'
+import { login, verifyAuth } from '../lib/api'
 
 export default function XeroxAuth() {
     const [theme, setTheme] = useState<'light' | 'dark'>('dark')
@@ -11,32 +12,48 @@ export default function XeroxAuth() {
     const [password, setPassword] = useState('')
     const [showPassword, setShowPassword] = useState(false)
     const [error, setError] = useState('')
+    const [isLoading, setIsLoading] = useState(false)
     const router = useRouter()
 
     useEffect(() => {
         document.documentElement.setAttribute('data-theme', theme)
     }, [theme])
 
+    // Check if already authenticated
+    useEffect(() => {
+        const checkAuth = async () => {
+            const isValid = await verifyAuth()
+            if (isValid) {
+                router.push('/xerox_dashboard')
+            }
+        }
+        checkAuth()
+    }, [router])
+
     const toggleTheme = () => {
         setTheme((prev) => (prev === 'light' ? 'dark' : 'light'))
     }
 
-    const handleLogin = () => {
+    const handleLogin = async () => {
         if (loginId.trim() === '' || password.trim() === '') {
             setError('Please enter both Login ID and Password')
             return
         }
         
-        // Validate credentials
-        if (loginId === 'iem xerox' && password === 'iem@xerox') {
-            localStorage.setItem('xerox_authenticated', 'true')
+        setIsLoading(true)
+        setError('')
+        
+        try {
+            await login(loginId, password)
             router.push('/xerox_dashboard')
-        } else {
-            setError('Invalid Login ID or Password')
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Invalid Login ID or Password')
+        } finally {
+            setIsLoading(false)
         }
     }
 
-    const isFormValid = loginId.trim() !== '' && password.trim() !== ''
+    const isFormValid = loginId.trim() !== '' && password.trim() !== '' && !isLoading
 
     return (
         <div className={styles.container}>
@@ -96,7 +113,7 @@ export default function XeroxAuth() {
                         disabled={!isFormValid}
                         onClick={handleLogin}
                     >
-                        Sign In
+                        {isLoading ? 'Signing In...' : 'Sign In'}
                     </button>
 
                     <button 

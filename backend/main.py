@@ -3,11 +3,15 @@ Print Scheduling System - Main Backend Server
 Single server with direct streaming (no microservice, no temp storage)
 """
 
-from fastapi import FastAPI, UploadFile, File, Form, HTTPException
+from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Depends, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import Response
+from fastapi.responses import Response, JSONResponse
 from typing import List, Optional
 import json
+
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
 
 from merge_pdf import merge_pdfs, get_total_pages, validate_pdf
 from store_merged_pdf import (
@@ -26,13 +30,41 @@ from create_frontpage import create_frontpage
 from stop_service import get_service_status, stop_service, start_service, is_service_active
 from ocr_verification import verify_payment_screenshot
 from xerox_config import MANAGER_UPI_ID
+from clear_dB import clear_all_orders
+from security import (
+    sanitize_string,
+    validate_student_id,
+    validate_student_name,
+    validate_transaction_id,
+    validate_color_mode,
+    validate_print_sides,
+    validate_copies,
+    create_access_token,
+    verify_xerox_credentials,
+    require_auth,
+    require_xerox_staff
+)
 from datetime import datetime
+
+# Initialize rate limiter
+limiter = Limiter(key_func=get_remote_address)
 
 app = FastAPI(
     title="Print Scheduling API",
     description="Backend for student print scheduling system",
     version="1.0.0"
 )
+
+# Attach limiter to app state
+app.state.limiter = limiter
+
+# Custom rate limit error handler
+@app.exception_handler(RateLimitExceeded)
+async def custom_rate_limit_exceeded_handler(request: Request, exc: RateLimitExceeded):
+    return JSONResponse(
+        status_code=429,
+        content={"detail": "Too many requests. Please wait a moment and try again."}
+    )
 
 # CORS configuration for frontend
 app.add_middleware(
@@ -47,6 +79,7 @@ app.add_middleware(
 MAX_FILE_SIZE = 50 * 1024 * 1024  # 50MB per file
 MAX_FILES = 10
 MAX_TOTAL_SIZE = 1024 * 1024 * 1024  # 1GB total
+MAX_PAGES_PER_FILE = 500  # Maximum pages per PDF file
 
 
 @app.get("/")
@@ -59,8 +92,47 @@ async def health_check():
     return {"status": "healthy"}
 
 
+# ==================== AUTHENTICATION ENDPOINTS ====================
+
+@app.post("/api/auth/login")
+@limiter.limit("10/minute")
+async def login(
+    request: Request,
+    username: str = Form(...),
+    password: str = Form(...)
+):
+    """
+    Authenticate xerox staff and return JWT token.
+    Rate limited to 10 requests per minute to prevent brute force attacks.
+    """
+    if not verify_xerox_credentials(username, password):
+        raise HTTPException(401, "Invalid username or password")
+    
+    token = create_access_token(username, role="staff")
+    return {
+        "success": True,
+        "access_token": token,
+        "token_type": "bearer",
+        "expires_in": 24 * 60 * 60  # 24 hours in seconds
+    }
+
+
+@app.get("/api/auth/verify")
+async def verify_auth(user: dict = Depends(require_auth)):
+    """
+    Verify if the current token is valid.
+    """
+    return {
+        "valid": True,
+        "username": user.get("sub"),
+        "role": user.get("role")
+    }
+
+
 @app.post("/api/orders")
+@limiter.limit("50/minute")
 async def create_print_order(
+    request: Request,
     files: List[UploadFile] = File(...),
     student_name: str = Form(...),
     student_id: str = Form(...),
@@ -72,6 +144,7 @@ async def create_print_order(
 ):
     """
     Create a new print order.
+    Rate limited to 50 requests per minute per IP.
     
     Flow:
     1. Receive PDF files (streamed, not stored)
@@ -80,6 +153,42 @@ async def create_print_order(
     4. Merge all PDFs (front page FIRST, then user files in order)
     5. Store only the merged PDF in database
     """
+    
+    # Input validation
+    name_valid, name_result = validate_student_name(student_name)
+    if not name_valid:
+        raise HTTPException(400, name_result)
+    student_name = name_result
+    
+    id_valid, id_result = validate_student_id(student_id)
+    if not id_valid:
+        raise HTTPException(400, id_result)
+    student_id = id_result
+    
+    color_valid, color_result = validate_color_mode(color_mode)
+    if not color_valid:
+        raise HTTPException(400, color_result)
+    color_mode = color_result
+    
+    sides_valid, sides_result = validate_print_sides(print_sides)
+    if not sides_valid:
+        raise HTTPException(400, sides_result)
+    print_sides = sides_result
+    
+    copies_valid, copies_result = validate_copies(copies)
+    if not copies_valid:
+        raise HTTPException(400, copies_result)
+    copies = copies_result
+    
+    # Sanitize instructions
+    instructions = sanitize_string(instructions, max_length=500, allow_newlines=True)
+    
+    # Validate transaction ID if provided
+    if transaction_id:
+        txn_valid, txn_result = validate_transaction_id(transaction_id)
+        if not txn_valid:
+            raise HTTPException(400, txn_result)
+        transaction_id = txn_result
     
     # Check if service is accepting orders
     if not is_service_active():
@@ -118,8 +227,8 @@ async def create_print_order(
         if total_size > MAX_TOTAL_SIZE:
             raise HTTPException(400, "Total file size exceeds 1GB limit")
         
-        # Validate PDF
-        is_valid, error = validate_pdf(content)
+        # Validate PDF (includes 500-page limit check)
+        is_valid, error = validate_pdf(content, max_pages=MAX_PAGES_PER_FILE)
         if not is_valid:
             raise HTTPException(400, f"Invalid PDF file {file.filename}: {error}")
         
@@ -176,8 +285,8 @@ async def create_print_order(
 
 
 @app.get("/api/orders")
-async def list_orders(status: Optional[str] = None):
-    """Get all orders, optionally filtered by status - returns queue with position"""
+async def list_orders(status: Optional[str] = None, user: dict = Depends(require_xerox_staff)):
+    """Get all orders, optionally filtered by status - returns queue with position (Xerox staff only)"""
     if status == "pending":
         orders = get_pending_orders()
     else:
@@ -202,7 +311,7 @@ async def list_orders(status: Optional[str] = None):
                 "estimated_cost": order.estimated_cost,
                 "file_size": order.file_size,
                 "status": order.status,
-                "created_at": order.created_at.isoformat(),
+                "created_at": order.created_at.isoformat() + "Z",
                 "instructions": order.instructions,
                 "original_filenames": json.loads(order.original_filenames or "[]"),
                 "transaction_id": order.transaction_id
@@ -229,15 +338,15 @@ async def get_order_details(order_id: str):
         "print_sides": order.print_sides,
         "estimated_cost": order.estimated_cost,
         "status": order.status,
-        "created_at": order.created_at.isoformat(),
+        "created_at": order.created_at.isoformat() + "Z",
         "instructions": order.instructions,
         "original_filenames": json.loads(order.original_filenames or "[]")
     }
 
 
 @app.get("/api/orders/{order_id}/download")
-async def download_order_pdf(order_id: str):
-    """Download the merged PDF for an order - ONLY if it's first in queue"""
+async def download_order_pdf(order_id: str, user: dict = Depends(require_xerox_staff)):
+    """Download the merged PDF for an order - ONLY if it's first in queue (Xerox staff only)"""
     # FIFO enforcement: only first order can be downloaded
     if not is_first_in_queue(order_id):
         raise HTTPException(
@@ -259,8 +368,8 @@ async def download_order_pdf(order_id: str):
 
 
 @app.post("/api/orders/{order_id}/complete")
-async def complete_order(order_id: str):
-    """Mark order as complete - ONLY if it's first in queue"""
+async def complete_order(order_id: str, user: dict = Depends(require_xerox_staff)):
+    """Mark order as complete - ONLY if it's first in queue (Xerox staff only)"""
     success, message = mark_as_complete(order_id)
     if not success:
         raise HTTPException(403, message)
@@ -269,8 +378,8 @@ async def complete_order(order_id: str):
 
 
 @app.post("/api/orders/{order_id}/not-complete")
-async def not_complete_order(order_id: str):
-    """Mark order as not complete (cancelled) - ONLY if it's first in queue"""
+async def not_complete_order(order_id: str, user: dict = Depends(require_xerox_staff)):
+    """Mark order as not complete (cancelled) - ONLY if it's first in queue (Xerox staff only)"""
     success, message = mark_as_not_complete_and_delete(order_id)
     if not success:
         raise HTTPException(403, message)
@@ -279,8 +388,8 @@ async def not_complete_order(order_id: str):
 
 
 @app.delete("/api/orders/{order_id}")
-async def remove_order(order_id: str):
-    """Delete an order - ONLY if it's first in queue"""
+async def remove_order(order_id: str, user: dict = Depends(require_xerox_staff)):
+    """Delete an order - ONLY if it's first in queue (Xerox staff only)"""
     success, message = delete_order(order_id)
     if not success:
         raise HTTPException(403, message)
@@ -302,9 +411,11 @@ async def get_stats():
 # ==================== PAYMENT VERIFICATION ENDPOINTS ====================
 
 @app.post("/api/verify-payment")
-async def verify_payment(screenshot: UploadFile = File(...)):
+@limiter.limit("100/minute")
+async def verify_payment(request: Request, screenshot: UploadFile = File(...)):
     """
     Verify a UPI payment screenshot using OCR.
+    Rate limited to 100 requests per minute per IP.
     
     Extracts and validates:
     1. Transaction ID / UPI Reference Number
@@ -367,17 +478,26 @@ async def service_status():
 
 
 @app.post("/api/service/stop")
-async def stop_xerox_service(message: str = Form(default="Xerox service is temporarily unavailable. Please try again later.")):
+async def stop_xerox_service(message: str = Form(default="Xerox service is temporarily unavailable. Please try again later."), user: dict = Depends(require_xerox_staff)):
     """Stop the service from accepting new orders (Xerox staff only)"""
     status = stop_service(message)
     return {"success": True, "status": status}
 
 
 @app.post("/api/service/start")
-async def start_xerox_service():
+async def start_xerox_service(user: dict = Depends(require_xerox_staff)):
     """Resume the service to accept orders (Xerox staff only)"""
     status = start_service()
     return {"success": True, "status": status}
+
+
+@app.delete("/api/database/clear")
+async def clear_database(user: dict = Depends(require_xerox_staff)):
+    """Clear all orders from the database (Xerox staff only)"""
+    result = clear_all_orders()
+    if not result["success"]:
+        raise HTTPException(500, result["message"])
+    return result
 
 
 if __name__ == "__main__":

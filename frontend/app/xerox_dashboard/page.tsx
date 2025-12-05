@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import styles from './page.module.css'
-import { getOrders, getStats, downloadOrderPdf, markComplete, markNotComplete, deleteOrder, formatFileSize, Order, getServiceStatus, stopService, startService } from '../lib/api'
+import { getOrders, getStats, downloadOrderPdf, markComplete, markNotComplete, deleteOrder, formatFileSize, Order, getServiceStatus, stopService, startService, verifyAuth, logout, isAuthenticated as checkIsAuthenticated, clearDatabase } from '../lib/api'
 
 const ClipboardIcon = () => (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -69,6 +69,7 @@ export default function XeroxDashboard() {
     const [serviceActive, setServiceActive] = useState(true)
     const [stopMessage, setStopMessage] = useState('Xerox service is temporarily unavailable. Please try again later.')
     const [showStopModal, setShowStopModal] = useState(false)
+    const [showClearDbModal, setShowClearDbModal] = useState(false)
     const router = useRouter()
 
     const fetchData = useCallback(async () => {
@@ -84,24 +85,41 @@ export default function XeroxDashboard() {
             setServiceActive(serviceStatus.is_active)
             setError('')
         } catch (err) {
-            setError('Failed to fetch data. Is the backend running?')
+            const message = err instanceof Error ? err.message : 'Failed to fetch data'
+            if (message === 'Authentication required') {
+                logout()
+                router.push('/xerox_auth')
+            } else {
+                setError('Failed to fetch data. Is the backend running?')
+            }
         } finally {
             setIsLoading(false)
         }
-    }, [])
+    }, [router])
 
     useEffect(() => {
         document.documentElement.setAttribute('data-theme', theme)
     }, [theme])
 
     useEffect(() => {
-        const auth = localStorage.getItem('xerox_authenticated')
-        if (auth !== 'true') {
-            router.push('/xerox_auth')
-        } else {
-            setIsAuthenticated(true)
-            fetchData()
+        const verifyAuthentication = async () => {
+            // First check if there's a token
+            if (!checkIsAuthenticated()) {
+                router.push('/xerox_auth')
+                return
+            }
+            
+            // Then verify the token is valid with the backend
+            const isValid = await verifyAuth()
+            if (!isValid) {
+                logout()
+                router.push('/xerox_auth')
+            } else {
+                setIsAuthenticated(true)
+                fetchData()
+            }
         }
+        verifyAuthentication()
     }, [router, fetchData])
 
     const toggleTheme = () => {
@@ -109,7 +127,7 @@ export default function XeroxDashboard() {
     }
 
     const handleLogout = () => {
-        localStorage.removeItem('xerox_authenticated')
+        logout()
         router.push('/')
     }
 
@@ -127,7 +145,12 @@ export default function XeroxDashboard() {
             document.body.removeChild(a)
         } catch (err: unknown) {
             const message = err instanceof Error ? err.message : 'Failed to download PDF'
-            setError(message)
+            if (message === 'Authentication required') {
+                logout()
+                router.push('/xerox_auth')
+            } else {
+                setError(message)
+            }
         } finally {
             setProcessingAction(null)
         }
@@ -140,7 +163,12 @@ export default function XeroxDashboard() {
             fetchData() // Refresh queue after removing top item
         } catch (err: unknown) {
             const message = err instanceof Error ? err.message : 'Failed to mark as complete'
-            setError(message)
+            if (message === 'Authentication required') {
+                logout()
+                router.push('/xerox_auth')
+            } else {
+                setError(message)
+            }
         } finally {
             setProcessingAction(null)
         }
@@ -153,7 +181,12 @@ export default function XeroxDashboard() {
             fetchData() // Refresh queue after removing top item
         } catch (err: unknown) {
             const message = err instanceof Error ? err.message : 'Failed to mark as not complete'
-            setError(message)
+            if (message === 'Authentication required') {
+                logout()
+                router.push('/xerox_auth')
+            } else {
+                setError(message)
+            }
         } finally {
             setProcessingAction(null)
         }
@@ -169,7 +202,12 @@ export default function XeroxDashboard() {
             fetchData() // Refresh queue after removing top item
         } catch (err: unknown) {
             const message = err instanceof Error ? err.message : 'Failed to delete order'
-            setError(message)
+            if (message === 'Authentication required') {
+                logout()
+                router.push('/xerox_auth')
+            } else {
+                setError(message)
+            }
         } finally {
             setProcessingAction(null)
         }
@@ -187,7 +225,12 @@ export default function XeroxDashboard() {
                 setServiceActive(true)
             } catch (err: unknown) {
                 const message = err instanceof Error ? err.message : 'Failed to start service'
-                setError(message)
+                if (message === 'Authentication required') {
+                    logout()
+                    router.push('/xerox_auth')
+                } else {
+                    setError(message)
+                }
             } finally {
                 setProcessingAction(null)
             }
@@ -202,7 +245,34 @@ export default function XeroxDashboard() {
             setShowStopModal(false)
         } catch (err: unknown) {
             const message = err instanceof Error ? err.message : 'Failed to stop service'
-            setError(message)
+            if (message === 'Authentication required') {
+                logout()
+                router.push('/xerox_auth')
+            } else {
+                setError(message)
+            }
+        } finally {
+            setProcessingAction(null)
+        }
+    }
+
+    const handleClearDatabase = async () => {
+        try {
+            setProcessingAction('clearDb')
+            const result = await clearDatabase()
+            setShowClearDbModal(false)
+            setError('')
+            // Refresh data after clearing
+            fetchData()
+            alert(`Successfully cleared ${result.deleted_count} orders from database`)
+        } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : 'Failed to clear database'
+            if (message === 'Authentication required') {
+                logout()
+                router.push('/xerox_auth')
+            } else {
+                setError(message)
+            }
         } finally {
             setProcessingAction(null)
         }
@@ -216,6 +286,7 @@ export default function XeroxDashboard() {
     const formatDate = (dateString: string) => {
         const date = new Date(dateString)
         return date.toLocaleString('en-IN', {
+            timeZone: 'Asia/Kolkata',
             day: '2-digit',
             month: 'short',
             hour: '2-digit',
@@ -295,6 +366,13 @@ export default function XeroxDashboard() {
                             >
                                 {serviceActive ? 'Stop Service' : 'Start Service'}
                             </button>
+                            <button 
+                                className={styles.clearDbBtn}
+                                onClick={() => setShowClearDbModal(true)}
+                                disabled={processingAction === 'clearDb'}
+                            >
+                                🗑 Clear Database
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -325,6 +403,35 @@ export default function XeroxDashboard() {
                                     disabled={processingAction === 'service'}
                                 >
                                     Stop Service
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Clear Database Modal */}
+                {showClearDbModal && (
+                    <div className={styles.modalOverlay}>
+                        <div className={styles.modal}>
+                            <h3 className={styles.modalTitle}>⚠️ Clear Database</h3>
+                            <p className={styles.modalText}>
+                                This will permanently delete <strong>ALL {orders.length} orders</strong> from the database.
+                                <br /><br />
+                                This action cannot be undone!
+                            </p>
+                            <div className={styles.modalActions}>
+                                <button 
+                                    className={styles.modalCancel} 
+                                    onClick={() => setShowClearDbModal(false)}
+                                >
+                                    Cancel
+                                </button>
+                                <button 
+                                    className={styles.modalConfirmDanger}
+                                    onClick={handleClearDatabase}
+                                    disabled={processingAction === 'clearDb'}
+                                >
+                                    {processingAction === 'clearDb' ? 'Clearing...' : 'Clear All Orders'}
                                 </button>
                             </div>
                         </div>
