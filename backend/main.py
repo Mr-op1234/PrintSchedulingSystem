@@ -8,6 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import Response, JSONResponse
 from typing import List, Optional
 import json
+import logging
 
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
@@ -45,6 +46,14 @@ from security import (
     require_xerox_staff
 )
 from datetime import datetime
+
+# Filter out /v1/models requests from logs
+class EndpointFilter(logging.Filter):
+    def filter(self, record: logging.LogRecord) -> bool:
+        return "/v1/models" not in record.getMessage()
+
+# Apply filter to uvicorn access logger
+logging.getLogger("uvicorn.access").addFilter(EndpointFilter())
 
 # Initialize rate limiter
 limiter = Limiter(key_func=get_remote_address)
@@ -90,6 +99,12 @@ async def root():
 @app.get("/health")
 async def health_check():
     return {"status": "healthy"}
+
+
+# Silently handle misrouted requests (e.g., from AI tools looking for OpenAI API)
+@app.get("/v1/models")
+async def models_endpoint():
+    return JSONResponse(status_code=404, content={"error": "Not Found"})
 
 
 # ==================== AUTHENTICATION ENDPOINTS ====================

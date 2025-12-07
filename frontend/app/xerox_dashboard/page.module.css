@@ -1,62 +1,7 @@
 /*
- * AURORA PULSE THEME - Xerox Dashboard
+ * AURORA PULSE THEME - Xerox Dashboard (Page-specific styles only)
+ * Common styles moved to globals.css
  */
-
-.container {
-  width: 100vw;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  margin: 0;
-  padding: 0;
-  overflow-x: hidden;
-}
-
-.loading {
-  flex: 1;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-size: 1.2rem;
-  color: var(--text-muted);
-}
-
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1rem 2rem;
-  width: 100%;
-  box-sizing: border-box;
-  background: var(--glass-bg);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  position: sticky;
-  top: 0;
-  z-index: 100;
-}
-
-.headerLeft {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.headerRight {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.title {
-  font-size: 1.6rem;
-  font-weight: 700;
-  margin: 0;
-  background: var(--aurora-gradient);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
 
 .logoutButton {
   background: var(--button-bg);

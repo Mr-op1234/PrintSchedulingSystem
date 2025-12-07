@@ -56,12 +56,12 @@ export default function XeroxAuth() {
     const isFormValid = loginId.trim() !== '' && password.trim() !== '' && !isLoading
 
     return (
-        <div className={styles.container}>
-            <header className={styles.header}>
-                <Link href="/" className={styles.titleLink}>
-                    <h1 className={styles.title}>Print Scheduling</h1>
+        <div className="page-container">
+            <header className="page-header">
+                <Link href="/" className="page-title-link">
+                    <h1 className="page-title">Print Scheduling</h1>
                 </Link>
-                <button className={styles.themeToggle} onClick={toggleTheme}>
+                <button className="theme-toggle" onClick={toggleTheme}>
                     {theme === 'light' ? '🌙' : '☀️'}
                 </button>
             </header>

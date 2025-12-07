@@ -95,21 +95,21 @@ export default function StudentDashboard() {
     }
 
     return (
-        <div className={styles.container}>
-            <header className={styles.header}>
-                <div className={styles.headerLeft}>
-                    <Link href="/" className={styles.titleLink}>
-                        <h1 className={styles.title}>Print Scheduling</h1>
+        <div className="page-container">
+            <header className="page-header">
+                <div className="header-left">
+                    <Link href="/" className="page-title-link">
+                        <h1 className="page-title">Print Scheduling</h1>
                     </Link>
                 </div>
-                <button className={styles.themeToggle} onClick={toggleTheme}>
+                <button className="theme-toggle" onClick={toggleTheme}>
                     {theme === 'light' ? '🌙' : '☀️'}
                 </button>
             </header>
-            <main className={styles.main}>
+            <main className="page-main max-600">
                 {loading ? (
-                    <div className={styles.loadingState}>
-                        <div className={styles.spinner}></div>
+                    <div className="loading-state">
+                        <div className="spinner"></div>
                         <p>Loading...</p>
                     </div>
                 ) : serviceStatus && !serviceStatus.is_active ? (

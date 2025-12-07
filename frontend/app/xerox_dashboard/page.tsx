@@ -303,25 +303,25 @@ export default function XeroxDashboard() {
     // Show loading while checking auth
     if (isAuthenticated === null) {
         return (
-            <div className={styles.container}>
-                <div className={styles.loading}>Loading...</div>
+            <div className="page-container">
+                <div className="loading-state">Loading...</div>
             </div>
         )
     }
 
     return (
-        <div className={styles.container}>
-            <header className={styles.header}>
-                <div className={styles.headerLeft}>
-                    <Link href="/" className={styles.titleLink}>
-                        <h1 className={styles.title}>Print Scheduling</h1>
+        <div className="page-container">
+            <header className="page-header">
+                <div className="header-left">
+                    <Link href="/" className="page-title-link">
+                        <h1 className="page-title">Print Scheduling</h1>
                     </Link>
                 </div>
-                <div className={styles.headerRight}>
+                <div className="header-right">
                     <button className={styles.logoutButton} onClick={handleLogout}>
                         Logout
                     </button>
-                    <button className={styles.themeToggle} onClick={toggleTheme}>
+                    <button className="theme-toggle" onClick={toggleTheme}>
                         {theme === 'light' ? '☾' : '☀'}
                     </button>
                 </div>

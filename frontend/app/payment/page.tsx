@@ -154,23 +154,23 @@ export default function Payment() {
     }
 
     return (
-        <div className={styles.container}>
-            <header className={styles.header}>
-                <div className={styles.headerLeft}>
-                    <Link href="/" className={styles.titleLink}>
-                        <h1 className={styles.title}>Print Scheduling</h1>
+        <div className="page-container">
+            <header className="page-header">
+                <div className="header-left">
+                    <Link href="/" className="page-title-link">
+                        <h1 className="page-title">Print Scheduling</h1>
                     </Link>
                 </div>
-                <button className={styles.themeToggle} onClick={toggleTheme}>
+                <button className="theme-toggle" onClick={toggleTheme}>
                     {theme === 'light' ? '🌙' : '☀️'}
                 </button>
             </header>
 
-            <main className={styles.main}>
-                <div className={styles.paymentCard}>
-                    <div className={styles.cardHeader}>
-                        <span className={styles.cardIcon}>💳</span>
-                        <h2 className={styles.cardTitle}>Payment</h2>
+            <main className="page-main max-600">
+                <div className="card">
+                    <div className="card-header">
+                        <span className="card-icon">💳</span>
+                        <h2 className="card-title">Payment</h2>
                     </div>
 
                     <div className={styles.summarySection}>
@@ -202,7 +202,7 @@ export default function Payment() {
                     </div>
 
                     <div className={styles.screenshotSection}>
-                        <label className={styles.label}>Upload Payment Screenshot</label>
+                        <label className="form-label">Upload Payment Screenshot</label>
                         
                         {!screenshot ? (
                             <div 
@@ -267,7 +267,7 @@ export default function Payment() {
                     </div>
 
                     {error && (
-                        <div className={styles.error}>
+                        <div className="error-message">
                             {error}
                         </div>
                     )}
@@ -275,14 +275,14 @@ export default function Payment() {
 
                 <div className={styles.footer}>
                     <button 
-                        className={styles.backButton} 
+                        className="back-button" 
                         onClick={() => router.push('/details')}
                         disabled={isSubmitting}
                     >
                         ← Back
                     </button>
                     <button 
-                        className={styles.payButton} 
+                        className="btn-primary" 
                         disabled={!isPaymentVerified || isSubmitting}
                         onClick={handlePayment}
                     >

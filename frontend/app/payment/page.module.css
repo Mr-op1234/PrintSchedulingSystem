@@ -1,125 +1,9 @@
 /*
- * AURORA PULSE THEME - Payment
+ * AURORA PULSE THEME - Payment (Page-specific styles only)
+ * Common styles moved to globals.css
  */
 
-.container {
-  width: 100vw;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  margin: 0;
-  padding: 0;
-  overflow-x: hidden;
-  position: relative;
-}
-
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1rem 2rem;
-  width: 100%;
-  box-sizing: border-box;
-  background: var(--glass-bg);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  position: sticky;
-  top: 0;
-  z-index: 100;
-}
-
-.headerLeft {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 0.5rem;
-}
-
-.titleLink {
-  text-decoration: none;
-  transition: all 0.3s ease;
-}
-
-.titleLink:hover {
-  transform: scale(1.02);
-  filter: brightness(1.1);
-}
-
-.title {
-  font-size: 1.6rem;
-  font-weight: 700;
-  margin: 0;
-  background: var(--aurora-gradient);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  letter-spacing: -0.02em;
-  cursor: pointer;
-}
-
-.themeToggle {
-  background: var(--button-bg);
-  color: var(--text-color);
-  border: 1px solid var(--button-border);
-  padding: 0.5rem 0.75rem;
-  font-size: 1.2rem;
-  line-height: 1;
-  cursor: pointer;
-  border-radius: 20px;
-  width: 48px;
-  height: 36px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-}
-
-.themeToggle:hover {
-  background: var(--button-hover);
-  transform: scale(1.08);
-  box-shadow: 0 0 20px var(--card-glow);
-  border-color: var(--aurora-cyan);
-}
-
-.main {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 2rem;
-  width: 100%;
-  max-width: 600px;
-  margin: 0 auto;
-}
-
-.paymentCard {
-  width: 100%;
-  padding: 2rem;
-  background: var(--card-bg);
-  border: 1px solid var(--card-border);
-  border-radius: 16px;
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-}
-
-.cardHeader {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  margin-bottom: 1.5rem;
-}
-
-.cardIcon { font-size: 1.5rem; }
-
-.cardTitle {
-  font-size: 1.3rem;
-  font-weight: 600;
-  margin: 0;
-  color: var(--text-color);
-}
+/* Card styles now in globals.css (.card, .card-header, .card-icon, .card-title) */
 
 .summarySection {
   background: var(--bg-primary);
@@ -175,33 +59,7 @@
 
 .upiSection { margin-top: 0.5rem; }
 
-.label {
-  display: block;
-  font-size: 0.9rem;
-  font-weight: 500;
-  color: var(--text-color);
-  margin-bottom: 0.5rem;
-}
-
-.input {
-  width: 100%;
-  padding: 0.875rem 1rem;
-  background: var(--bg-primary);
-  border: 1px solid var(--card-border);
-  border-radius: 10px;
-  color: var(--text-color);
-  font-size: 0.95rem;
-  transition: all 0.2s ease;
-  box-sizing: border-box;
-}
-
-.input::placeholder { color: var(--text-muted); }
-
-.input:focus {
-  outline: none;
-  border-color: var(--aurora-cyan);
-  box-shadow: 0 0 0 2px rgba(0, 212, 255, 0.1);
-}
+/* Form label and input now in globals.css (.form-label, .form-input) */
 
 .footer {
   display: flex;
@@ -211,57 +69,8 @@
   margin-top: 2rem;
 }
 
-.backButton {
-  background: var(--button-bg);
-  color: var(--text-color);
-  border: 1px solid var(--button-border);
-  padding: 0.75rem 1.5rem;
-  font-size: 0.95rem;
-  cursor: pointer;
-  border-radius: 10px;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-}
-
-.backButton:hover {
-  background: var(--button-hover);
-  transform: translateX(-4px);
-  box-shadow: 0 0 15px var(--card-glow);
-}
-
-.payButton {
-  padding: 0.75rem 2rem;
-  font-size: 0.95rem;
-  font-weight: 600;
-  color: #fff;
-  background: var(--aurora-gradient);
-  border: none;
-  border-radius: 10px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 15px rgba(0, 212, 255, 0.3);
-}
-
-.payButton:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 25px rgba(0, 212, 255, 0.4);
-}
-
-.payButton:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.error {
-  background: rgba(239, 68, 68, 0.1);
-  border: 1px solid rgba(239, 68, 68, 0.3);
-  color: #ef4444;
-  padding: 0.75rem 1rem;
-  border-radius: 8px;
-  font-size: 0.9rem;
-  margin-top: 1rem;
-}
+/* Buttons now in globals.css (.back-button, .btn-primary, .btn-secondary) */
+/* Error message now in globals.css (.error-message) */
 
 /* Payment Instructions Section */
 .paymentSection {

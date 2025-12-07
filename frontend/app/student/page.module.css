@@ -1,118 +1,7 @@
 /*
- * AURORA PULSE THEME - Student Dashboard
+ * AURORA PULSE THEME - Student Dashboard (Page-specific styles only)
+ * Common styles moved to globals.css
  */
-
-.container {
-  width: 100vw;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  margin: 0;
-  padding: 0;
-  overflow-x: hidden;
-  position: relative;
-}
-
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1rem 2rem;
-  width: 100%;
-  box-sizing: border-box;
-  background: var(--glass-bg);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  position: sticky;
-  top: 0;
-  z-index: 100;
-}
-
-.headerLeft {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 0.5rem;
-}
-
-.backButton {
-  background: var(--button-bg);
-  color: var(--text-color);
-  border: 1px solid var(--button-border);
-  padding: 0.4rem 0.8rem;
-  font-size: 0.85rem;
-  cursor: pointer;
-  border-radius: 10px;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-}
-
-.backButton:hover {
-  background: var(--button-hover);
-  transform: translateX(-4px);
-  box-shadow: 0 0 15px var(--card-glow);
-}
-
-.titleLink {
-  text-decoration: none;
-  transition: all 0.3s ease;
-}
-
-.titleLink:hover {
-  transform: scale(1.02);
-  filter: brightness(1.1);
-}
-
-.title {
-  font-size: 1.6rem;
-  font-weight: 700;
-  margin: 0;
-  background: var(--aurora-gradient);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  letter-spacing: -0.02em;
-  cursor: pointer;
-}
-
-.themeToggle {
-  background: var(--button-bg);
-  color: var(--text-color);
-  border: 1px solid var(--button-border);
-  padding: 0.5rem 0.75rem;
-  font-size: 1.2rem;
-  line-height: 1;
-  cursor: pointer;
-  border-radius: 20px;
-  width: 48px;
-  height: 36px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-}
-
-.themeToggle:hover {
-  background: var(--button-hover);
-  transform: scale(1.08);
-  box-shadow: 0 0 20px var(--card-glow);
-  border-color: var(--aurora-cyan);
-}
-
-.main {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 2rem;
-  width: 100%;
-  max-width: 600px;
-  margin: 0 auto;
-}
 
 .uploadTitle {
   font-size: 2rem;
@@ -288,28 +177,7 @@
 }
 
 /* Loading State */
-.loadingState {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 1rem;
-  padding: 3rem;
-  color: var(--text-muted);
-}
-
-.spinner {
-  width: 40px;
-  height: 40px;
-  border: 3px solid var(--card-border);
-  border-top-color: var(--aurora-cyan);
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
+/* Loading and spinner moved to globals.css */
 
 /* Service Stopped Banner */
 .serviceStoppedBanner {

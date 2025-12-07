@@ -31,7 +31,7 @@ export default function Home() {
     }
 
     return (
-        <div className={styles.container}>
+        <div className="page-container">
             {showPopup && (
                 <div className={styles.popupOverlay} onClick={closePopup}>
                     <div className={styles.popup} onClick={(e) => e.stopPropagation()}>
@@ -42,9 +42,9 @@ export default function Home() {
                     </div>
                 </div>
             )}
-            <header className={styles.header}>
-                <h1 className={styles.title}>Print Scheduling</h1>
-                <button className={styles.themeToggle} onClick={toggleTheme} aria-label="Toggle theme">
+            <header className="page-header">
+                <h1 className="page-title">Print Scheduling</h1>
+                <button className="theme-toggle" onClick={toggleTheme} aria-label="Toggle theme">
                     {theme === 'light' ? '🌙' : '☀️'}
                 </button>
             </header>
