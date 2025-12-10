@@ -58,7 +58,6 @@ const PowerIcon = () => (
 )
 
 export default function XeroxDashboard() {
-    const [theme, setTheme] = useState<'light' | 'dark'>('dark')
     const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null)
     const [searchQuery, setSearchQuery] = useState('')
     const [orders, setOrders] = useState<Order[]>([])
@@ -98,8 +97,8 @@ export default function XeroxDashboard() {
     }, [router])
 
     useEffect(() => {
-        document.documentElement.setAttribute('data-theme', theme)
-    }, [theme])
+        document.documentElement.setAttribute('data-theme', 'dark')
+    }, [])
 
     useEffect(() => {
         const verifyAuthentication = async () => {
@@ -121,10 +120,6 @@ export default function XeroxDashboard() {
         }
         verifyAuthentication()
     }, [router, fetchData])
-
-    const toggleTheme = () => {
-        setTheme((prev) => (prev === 'light' ? 'dark' : 'light'))
-    }
 
     const handleLogout = () => {
         logout()
@@ -320,9 +315,6 @@ export default function XeroxDashboard() {
                 <div className="header-right">
                     <button className={styles.logoutButton} onClick={handleLogout}>
                         Logout
-                    </button>
-                    <button className="theme-toggle" onClick={toggleTheme}>
-                        {theme === 'light' ? '☾' : '☀'}
                     </button>
                 </div>
             </header>

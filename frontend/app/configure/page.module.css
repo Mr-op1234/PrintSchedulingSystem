@@ -202,7 +202,241 @@
   box-shadow: 0 6px 25px rgba(0, 212, 255, 0.4);
 }
 
+/* Binding Section */
+.bindingSection {
+  width: 100%;
+  padding: 1.5rem;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 16px;
+  margin-bottom: 1.5rem;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.bindingTitle {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0 0 1rem 0;
+  color: var(--text-color);
+}
+
+.bindingButtons {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+}
+
+.bindingButton {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  background: var(--bg-primary);
+  border: 2px solid var(--card-border);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  color: var(--text-color);
+}
+
+.bindingButton:hover {
+  border-color: var(--aurora-cyan);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(0, 212, 255, 0.2);
+}
+
+.bindingActive {
+  border-color: var(--aurora-cyan) !important;
+  background: rgba(0, 212, 255, 0.1) !important;
+  box-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
+}
+
+.bindingIcon {
+  font-size: 1.5rem;
+}
+
+.bindingInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  flex: 1;
+}
+
+.bindingName {
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--text-color);
+}
+
+.bindingPrice {
+  font-size: 0.85rem;
+  color: var(--aurora-cyan);
+  font-weight: 600;
+}
+
+/* Xerox Section */
+.xeroxSection {
+  width: 100%;
+  padding: 1.5rem;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 16px;
+  margin-bottom: 1.5rem;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.xeroxTitle {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0 0 0.5rem 0;
+  color: var(--text-color);
+}
+
+.xeroxDescription {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  margin: 0 0 1rem 0;
+  line-height: 1.6;
+}
+
+.xeroxInput {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.xeroxLabel {
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--text-color);
+}
+
+.xeroxNumberInput {
+  padding: 0.75rem 1rem;
+  background: var(--bg-primary);
+  border: 1px solid var(--card-border);
+  border-radius: 10px;
+  font-size: 1rem;
+  color: var(--text-color);
+  transition: all 0.2s ease;
+  max-width: 200px;
+}
+
+.xeroxNumberInput:focus {
+  outline: none;
+  border-color: var(--aurora-cyan);
+  box-shadow: 0 0 15px rgba(0, 212, 255, 0.2);
+}
+
+.xeroxNumberInput::-webkit-inner-spin-button,
+.xeroxNumberInput::-webkit-outer-spin-button {
+  opacity: 1;
+}
+
+/* Custom Copies Modal */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.modalContent {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 16px;
+  padding: 2rem;
+  max-width: 400px;
+  width: 90%;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+}
+
+.modalTitle {
+  font-size: 1.3rem;
+  font-weight: 600;
+  margin: 0 0 0.5rem 0;
+  color: var(--text-color);
+}
+
+.modalDescription {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  margin: 0 0 1.5rem 0;
+}
+
+.modalInput {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background: var(--bg-primary);
+  border: 1px solid var(--card-border);
+  border-radius: 10px;
+  font-size: 1rem;
+  color: var(--text-color);
+  transition: all 0.2s ease;
+  margin-bottom: 1.5rem;
+}
+
+.modalInput:focus {
+  outline: none;
+  border-color: var(--aurora-cyan);
+  box-shadow: 0 0 15px rgba(0, 212, 255, 0.2);
+}
+
+.modalButtons {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+}
+
+.modalCancelButton,
+.modalSubmitButton {
+  padding: 0.75rem 1.5rem;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: none;
+}
+
+.modalCancelButton {
+  background: var(--bg-primary);
+  color: var(--text-color);
+  border: 1px solid var(--card-border);
+}
+
+.modalCancelButton:hover {
+  background: var(--button-hover);
+  transform: translateY(-2px);
+}
+
+.modalSubmitButton {
+  background: var(--aurora-gradient);
+  color: #fff;
+  box-shadow: 0 4px 15px rgba(0, 212, 255, 0.3);
+}
+
+.modalSubmitButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 25px rgba(0, 212, 255, 0.4);
+}
+
 @media (max-width: 768px) {
   .dropdownContainer { grid-template-columns: 1fr; }
   .configCard { padding: 1.5rem; }
+  .bindingButtons { grid-template-columns: 1fr; }
+  .xeroxNumberInput { max-width: 100%; }
+  .modalContent { padding: 1.5rem; }
+  .modalButtons { flex-direction: column; }
+  .modalCancelButton, .modalSubmitButton { width: 100%; }
 }

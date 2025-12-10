@@ -7,7 +7,6 @@ import styles from './page.module.css'
 import { login, verifyAuth } from '../lib/api'
 
 export default function XeroxAuth() {
-    const [theme, setTheme] = useState<'light' | 'dark'>('dark')
     const [loginId, setLoginId] = useState('')
     const [password, setPassword] = useState('')
     const [showPassword, setShowPassword] = useState(false)
@@ -16,8 +15,8 @@ export default function XeroxAuth() {
     const router = useRouter()
 
     useEffect(() => {
-        document.documentElement.setAttribute('data-theme', theme)
-    }, [theme])
+        document.documentElement.setAttribute('data-theme', 'dark')
+    }, [])
 
     // Check if already authenticated
     useEffect(() => {
@@ -29,10 +28,6 @@ export default function XeroxAuth() {
         }
         checkAuth()
     }, [router])
-
-    const toggleTheme = () => {
-        setTheme((prev) => (prev === 'light' ? 'dark' : 'light'))
-    }
 
     const handleLogin = async () => {
         if (loginId.trim() === '' || password.trim() === '') {
@@ -61,9 +56,6 @@ export default function XeroxAuth() {
                 <Link href="/" className="page-title-link">
                     <h1 className="page-title">Print Scheduling</h1>
                 </Link>
-                <button className="theme-toggle" onClick={toggleTheme}>
-                    {theme === 'light' ? '🌙' : '☀️'}
-                </button>
             </header>
 
             <main className={styles.main}>

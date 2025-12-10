@@ -141,6 +141,20 @@ def validate_color_mode(mode: str) -> Tuple[bool, str]:
     return True, mode
 
 
+def validate_paper_type(paper_type: str) -> Tuple[bool, str]:
+    """Validate paper type is one of allowed values"""
+    if paper_type not in ['normal', 'photopaper']:
+        return False, "Paper type must be 'normal' or 'photopaper'"
+    return True, paper_type
+
+
+def validate_binding(binding: str) -> Tuple[bool, str]:
+    """Validate binding is one of allowed values"""
+    if binding not in ['none', 'spiral', 'soft']:
+        return False, "Binding must be 'none', 'spiral', or 'soft'"
+    return True, binding
+
+
 def validate_print_sides(sides: str) -> Tuple[bool, str]:
     """Validate print sides is one of allowed values"""
     if sides not in ['single', 'double']:

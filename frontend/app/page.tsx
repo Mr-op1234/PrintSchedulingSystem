@@ -5,14 +5,13 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import styles from './page.module.css'
 
 export default function Home() {
-    const [theme, setTheme] = useState<'light' | 'dark'>('dark')
     const [showPopup, setShowPopup] = useState(false)
     const router = useRouter()
     const searchParams = useSearchParams()
 
     useEffect(() => {
-        document.documentElement.setAttribute('data-theme', theme)
-    }, [theme])
+        document.documentElement.setAttribute('data-theme', 'dark')
+    }, [])
 
     useEffect(() => {
         if (searchParams.get('success') === 'true') {
@@ -21,10 +20,6 @@ export default function Home() {
             router.replace('/')
         }
     }, [searchParams, router])
-
-    const toggleTheme = () => {
-        setTheme((prev) => (prev === 'light' ? 'dark' : 'light'))
-    }
 
     const closePopup = () => {
         setShowPopup(false)
@@ -44,9 +39,6 @@ export default function Home() {
             )}
             <header className="page-header">
                 <h1 className="page-title">Print Scheduling</h1>
-                <button className="theme-toggle" onClick={toggleTheme} aria-label="Toggle theme">
-                    {theme === 'light' ? '🌙' : '☀️'}
-                </button>
             </header>
             <main className={styles.main}>
                 <div className={styles.cardContainer}>

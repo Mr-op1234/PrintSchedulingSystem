@@ -8,7 +8,6 @@ import { useOrder } from '../context/OrderContext'
 import { submitOrder, verifyPaymentScreenshot, getPaymentUpiId } from '../lib/api'
 
 export default function Payment() {
-    const [theme, setTheme] = useState<'light' | 'dark'>('dark')
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [isVerifying, setIsVerifying] = useState(false)
     const [error, setError] = useState('')
@@ -39,8 +38,8 @@ export default function Payment() {
     }, [files, studentInfo, router])
 
     useEffect(() => {
-        document.documentElement.setAttribute('data-theme', theme)
-    }, [theme])
+        document.documentElement.setAttribute('data-theme', 'dark')
+    }, [])
 
     // Fetch manager's UPI ID on mount
     useEffect(() => {
@@ -55,12 +54,10 @@ export default function Payment() {
         fetchUpiId()
     }, [])
 
-    const toggleTheme = () => {
-        setTheme((prev) => (prev === 'light' ? 'dark' : 'light'))
-    }
-
     const colorModeDisplay = printConfig.colorMode === 'color' ? 'Color' : 'B&W'
+    const paperTypeDisplay = printConfig.paperType === 'photopaper' ? 'Photo Paper' : 'Normal Paper'
     const printSidesDisplay = printConfig.printSides === 'double' ? 'Double-sided' : 'Single-sided'
+    const bindingDisplay = printConfig.binding === 'spiral' ? 'Spiral Binding' : printConfig.binding === 'soft' ? 'Soft Binding' : 'No Binding'
 
     const handleScreenshotSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0]
@@ -138,6 +135,9 @@ export default function Payment() {
                 printConfig.colorMode,
                 printConfig.printSides,
                 printConfig.copies,
+                printConfig.pageSize,
+                printConfig.paperType,
+                printConfig.binding,
                 studentInfo.instructions,
                 transactionId
             )
@@ -161,15 +161,11 @@ export default function Payment() {
                         <h1 className="page-title">Print Scheduling</h1>
                     </Link>
                 </div>
-                <button className="theme-toggle" onClick={toggleTheme}>
-                    {theme === 'light' ? '🌙' : '☀️'}
-                </button>
             </header>
 
             <main className="page-main max-600">
                 <div className="card">
                     <div className="card-header">
-                        <span className="card-icon">💳</span>
                         <h2 className="card-title">Payment</h2>
                     </div>
 
@@ -180,7 +176,12 @@ export default function Payment() {
                             <p><strong>ID:</strong> {studentInfo.studentId}</p>
                             <p><strong>Files:</strong> {files.length} document(s)</p>
                             <p><strong>Pages:</strong> {totalPages + 1} (includes cover page)</p>
-                            <p><strong>Settings:</strong> {colorModeDisplay}, {printSidesDisplay}, {printConfig.copies} copy</p>
+                            <p><strong>Page Size:</strong> {printConfig.pageSize}</p>
+                            <p><strong>Settings:</strong> {colorModeDisplay}, {paperTypeDisplay}, {printSidesDisplay}</p>
+                            <p><strong>Copies:</strong> {printConfig.copies === 1 ? '1 (Print)' : `${printConfig.copies} (1 Print + ${printConfig.copies - 1} Xerox)`}</p>
+                            {printConfig.binding !== 'none' && (
+                                <p><strong>Binding:</strong> {bindingDisplay}</p>
+                            )}
                         </div>
                         <div className={styles.summaryTotal}>
                             <span className={styles.totalLabel}>Total</span>

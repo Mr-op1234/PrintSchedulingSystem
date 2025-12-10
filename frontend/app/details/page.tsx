@@ -7,7 +7,6 @@ import styles from './page.module.css'
 import { useOrder } from '../context/OrderContext'
 
 export default function StudentDetails() {
-    const [theme, setTheme] = useState<'light' | 'dark'>('dark')
     const router = useRouter()
     
     const { files, studentInfo, setStudentInfo } = useOrder()
@@ -20,12 +19,8 @@ export default function StudentDetails() {
     }, [files, router])
 
     useEffect(() => {
-        document.documentElement.setAttribute('data-theme', theme)
-    }, [theme])
-
-    const toggleTheme = () => {
-        setTheme((prev) => (prev === 'light' ? 'dark' : 'light'))
-    }
+        document.documentElement.setAttribute('data-theme', 'dark')
+    }, [])
 
     const handleNameChange = (value: string) => {
         setStudentInfo({ ...studentInfo, name: value })
@@ -35,11 +30,17 @@ export default function StudentDetails() {
         setStudentInfo({ ...studentInfo, studentId: value })
     }
 
+    const handlePhoneNumberChange = (value: string) => {
+        // Only allow digits and limit to 10 characters
+        const digitsOnly = value.replace(/\D/g, '').slice(0, 10)
+        setStudentInfo({ ...studentInfo, phoneNumber: digitsOnly })
+    }
+
     const handleInstructionsChange = (value: string) => {
         setStudentInfo({ ...studentInfo, instructions: value.slice(0, 200) })
     }
 
-    const isFormValid = studentInfo.name.trim() !== '' && studentInfo.studentId.trim() !== ''
+    const isFormValid = studentInfo.name.trim() !== '' && studentInfo.studentId.trim() !== '' && studentInfo.phoneNumber.trim() !== '' && studentInfo.phoneNumber.length === 10
 
     return (
         <div className="page-container">
@@ -49,9 +50,6 @@ export default function StudentDetails() {
                         <h1 className="page-title">Print Scheduling</h1>
                     </Link>
                 </div>
-                <button className="theme-toggle" onClick={toggleTheme}>
-                    {theme === 'light' ? '🌙' : '☀️'}
-                </button>
             </header>
 
             <main className="page-main max-900">
@@ -81,6 +79,18 @@ export default function StudentDetails() {
                             placeholder="Enter your IEM ID (e.g., 12023052016044)"
                             value={studentInfo.studentId}
                             onChange={(e) => handleStudentIdChange(e.target.value)}
+                        />
+                    </div>
+
+                    <div className={styles.formGroup}>
+                        <label className={styles.label}>Phone Number</label>
+                        <input
+                            type="tel"
+                            className={styles.input}
+                            placeholder="Enter your 10-digit phone number"
+                            value={studentInfo.phoneNumber}
+                            onChange={(e) => handlePhoneNumberChange(e.target.value)}
+                            maxLength={10}
                         />
                     </div>
 

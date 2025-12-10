@@ -14,7 +14,7 @@ from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 
-from merge_pdf import merge_pdfs, get_total_pages, validate_pdf
+from merge_pdf import merge_pdfs, get_total_pages, get_page_count, validate_pdf
 from store_merged_pdf import (
     create_order,
     get_order,
@@ -38,6 +38,8 @@ from security import (
     validate_student_name,
     validate_transaction_id,
     validate_color_mode,
+    validate_paper_type,
+    validate_binding,
     validate_print_sides,
     validate_copies,
     create_access_token,
@@ -78,7 +80,7 @@ async def custom_rate_limit_exceeded_handler(request: Request, exc: RateLimitExc
 # CORS configuration for frontend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],  # Next.js dev server
+    allow_origins=["http://localhost:3000", "http://localhost:3001"],  # Next.js dev server (supports both ports)
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -152,8 +154,11 @@ async def create_print_order(
     student_name: str = Form(...),
     student_id: str = Form(...),
     color_mode: str = Form(default="bw"),
+    paper_type: str = Form(default="normal"),
     print_sides: str = Form(default="single"),
     copies: int = Form(default=1),
+    page_size: str = Form(default="A4"),
+    binding: str = Form(default="none"),
     instructions: str = Form(default=""),
     transaction_id: str = Form(default="")
 ):
@@ -184,6 +189,21 @@ async def create_print_order(
     if not color_valid:
         raise HTTPException(400, color_result)
     color_mode = color_result
+    
+    paper_valid, paper_result = validate_paper_type(paper_type)
+    if not paper_valid:
+        raise HTTPException(400, paper_result)
+    paper_type = paper_result
+    
+    binding_valid, binding_result = validate_binding(binding)
+    if not binding_valid:
+        raise HTTPException(400, binding_result)
+    binding = binding_result
+    
+    # Validate page size
+    page_size = page_size.upper()
+    if page_size not in ['A4', 'A3']:
+        raise HTTPException(400, "Page size must be A4 or A3")
     
     sides_valid, sides_result = validate_print_sides(print_sides)
     if not sides_valid:
@@ -281,8 +301,11 @@ async def create_print_order(
             merged_pdf=merged_pdf,
             total_pages=total_pages,
             color_mode=color_mode,
+            paper_type=paper_type,
             print_sides=print_sides,
             copies=copies,
+            page_size=page_size,
+            binding=binding,
             instructions=instructions,
             original_filenames=json.dumps(filenames),
             transaction_id=transaction_id
@@ -490,6 +513,62 @@ async def service_status():
     """Get current service status"""
     status = get_service_status()
     return status
+
+
+@app.post("/api/count-pages")
+async def count_pdf_pages(files: List[UploadFile] = File(...)):
+    """Count total pages across uploaded PDF files (does not store files)"""
+    try:
+        # Validate file count
+        if len(files) > MAX_FILES:
+            raise HTTPException(400, f"Maximum {MAX_FILES} files allowed")
+        
+        if len(files) == 0:
+            raise HTTPException(400, "At least one file is required")
+        
+        # Read PDF files and count pages
+        pdf_bytes_list = []
+        file_page_counts = []
+        
+        for file in files:
+            # Check file type
+            if not file.filename.lower().endswith('.pdf'):
+                raise HTTPException(400, f"File {file.filename} is not a PDF")
+            
+            # Read file content
+            content = await file.read()
+            
+            # Validate file size
+            if len(content) > MAX_FILE_SIZE:
+                raise HTTPException(400, f"File {file.filename} exceeds {MAX_FILE_SIZE // (1024*1024)}MB limit")
+            
+            # Validate PDF and get page count
+            is_valid, error = validate_pdf(content, max_pages=MAX_PAGES_PER_FILE)
+            if not is_valid:
+                raise HTTPException(400, f"File {file.filename}: {error}")
+            
+            # Get individual page count
+            page_count = get_page_count(content)
+            file_page_counts.append({
+                "filename": file.filename,
+                "pages": page_count
+            })
+            
+            pdf_bytes_list.append(content)
+        
+        # Get total page count
+        total_pages = get_total_pages(pdf_bytes_list)
+        
+        return {
+            "success": True,
+            "total_pages": total_pages,
+            "files": file_page_counts
+        }
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(500, f"Error counting pages: {str(e)}")
 
 
 @app.post("/api/service/stop")

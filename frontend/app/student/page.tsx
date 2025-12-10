@@ -5,10 +5,9 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import styles from './page.module.css'
 import { useOrder } from '../context/OrderContext'
-import { getServiceStatus, ServiceStatus } from '../lib/api'
+import { getServiceStatus, ServiceStatus, countPages } from '../lib/api'
 
 export default function StudentDashboard() {
-    const [theme, setTheme] = useState<'light' | 'dark'>('dark')
     const [draggedIndex, setDraggedIndex] = useState<number | null>(null)
     const [dragOverIndex, setDragOverIndex] = useState<number | null>(null)
     const [serviceStatus, setServiceStatus] = useState<ServiceStatus | null>(null)
@@ -19,8 +18,8 @@ export default function StudentDashboard() {
     const { files, addFiles, removeFile, reorderFiles, setTotalPages } = useOrder()
 
     useEffect(() => {
-        document.documentElement.setAttribute('data-theme', theme)
-    }, [theme])
+        document.documentElement.setAttribute('data-theme', 'dark')
+    }, [])
 
     useEffect(() => {
         fetchServiceStatus()
@@ -43,7 +42,7 @@ export default function StudentDashboard() {
         setTheme((prev) => (prev === 'light' ? 'dark' : 'light'))
     }
 
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const selectedFiles = e.target.files
         if (!selectedFiles) return
 
@@ -51,13 +50,35 @@ export default function StudentDashboard() {
             (file) => file.type === 'application/pdf'
         )
 
-        const newFiles = pdfFiles.map((file) => ({
-            id: `${Date.now()}-${Math.random().toString(36).substring(2, 11)}`,
-            name: file.name,
-            file: file,
-        }))
+        try {
+            // Call backend API to count pages for all PDFs
+            const result = await countPages(pdfFiles)
+            
+            // Map files with their page counts from backend response
+            const newFilesWithPages = pdfFiles.map((file) => {
+                const fileInfo = result.files.find(f => f.filename === file.name)
+                return {
+                    id: `${Date.now()}-${Math.random().toString(36).substring(2, 11)}`,
+                    name: file.name,
+                    file: file,
+                    pageCount: fileInfo?.pages || 0
+                }
+            })
 
-        addFiles(newFiles)
+            addFiles(newFilesWithPages)
+            console.log(`Total pages: ${result.total_pages}`)
+        } catch (error) {
+            console.error('Error counting pages:', error)
+            // Still add files but without page counts
+            const newFiles = pdfFiles.map((file) => ({
+                id: `${Date.now()}-${Math.random().toString(36).substring(2, 11)}`,
+                name: file.name,
+                file: file,
+                pageCount: 0
+            }))
+            addFiles(newFiles)
+        }
+        
         if (fileInputRef.current) {
             fileInputRef.current.value = ''
         }
@@ -89,8 +110,6 @@ export default function StudentDashboard() {
     }
 
     const handleContinue = () => {
-        // Estimate pages (1 page per file as placeholder - backend will calculate actual)
-        setTotalPages(files.length)
         router.push('/configure')
     }
 
@@ -102,9 +121,6 @@ export default function StudentDashboard() {
                         <h1 className="page-title">Print Scheduling</h1>
                     </Link>
                 </div>
-                <button className="theme-toggle" onClick={toggleTheme}>
-                    {theme === 'light' ? '🌙' : '☀️'}
-                </button>
             </header>
             <main className="page-main max-600">
                 {loading ? (
@@ -162,7 +178,12 @@ export default function StudentDashboard() {
                                         <span className={styles.fileIndex}>{index + 1}</span>
                                         <span className={styles.dragHandle}>⋮⋮</span>
                                         <span className={styles.fileIcon}>📄</span>
-                                        <span className={styles.fileName}>{file.name}</span>
+                                        <span className={styles.fileName}>
+                                            {file.name}
+                                            {file.pageCount !== undefined && (
+                                                <span className={styles.pageCount}> ({file.pageCount} pages)</span>
+                                            )}
+                                        </span>
                                         <button
                                             className={styles.deleteButton}
                                             onClick={() => handleDelete(file.id)}

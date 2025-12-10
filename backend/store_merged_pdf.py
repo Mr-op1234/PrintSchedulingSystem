@@ -31,8 +31,11 @@ class PrintOrder(Base):
     
     # Print settings
     color_mode = Column(String, default="bw")  # "bw" or "color"
+    paper_type = Column(String, default="normal")  # "normal" or "photopaper"
     print_sides = Column(String, default="single")  # "single" or "double"
     copies = Column(Integer, default=1)
+    page_size = Column(String, default="A4")  # "A4" or "A3"
+    binding = Column(String, default="none")  # "none", "spiral", or "soft"
     total_pages = Column(Integer, default=0)
     
     # Cost
@@ -87,18 +90,66 @@ def create_order(
     merged_pdf: bytes,
     total_pages: int,
     color_mode: str = "bw",
+    paper_type: str = "normal",
     print_sides: str = "single",
     copies: int = 1,
+    page_size: str = "A4",
+    binding: str = "none",
     instructions: str = "",
     original_filenames: str = "[]",
     transaction_id: str = ""
 ) -> PrintOrder:
     """Create a new print order with merged PDF"""
     
-    # Calculate cost
-    base_cost = 5.0 if color_mode == "color" else 3.0
-    side_multiplier = 0.8 if print_sides == "double" else 1.0
-    estimated_cost = total_pages * base_cost * copies * side_multiplier
+    # Calculate cost with new pricing structure
+    # Front page is always ₹2, uploaded pages use configured pricing
+    # Double-sided: each sheet counts as 2 pages
+    uploaded_pages = total_pages
+    if print_sides == "double":
+        uploaded_pages = (uploaded_pages + 1) // 2 * 2  # Round up to even number
+    
+    # Pricing based on paper type and page size (for uploaded pages only)
+    # Photo paper has fixed pricing regardless of color
+    if paper_type == "photopaper":
+        if page_size == "A4":
+            price_per_page = 20.0
+        else:  # A3
+            price_per_page = 40.0
+    else:  # normal paper
+        if page_size == "A4":
+            if color_mode == "bw":
+                price_per_page = 2.0
+            else:  # color
+                price_per_page = 5.0
+        else:  # A3
+            if color_mode == "bw":
+                price_per_page = 4.0
+            else:  # color
+                price_per_page = 20.0
+    
+    # Calculate cost: 1 print copy + (n-1) xerox copies if copies > 1
+    front_page_cost = 2.0  # Front page is always ₹2
+    
+    if copies == 1:
+        # Single copy: front page (₹2) + uploaded pages at configured price
+        estimated_cost = front_page_cost + (uploaded_pages * price_per_page)
+    else:
+        # Multiple copies: 1 print + (n-1) xerox
+        # Print cost for 1 copy: front page (₹2) + uploaded pages
+        estimated_cost = front_page_cost + (uploaded_pages * price_per_page)
+        
+        # Xerox cost for remaining copies (only uploaded pages, NOT front page)
+        # Front page is only printed once in the original, not xeroxed
+        # Xerox pricing: ₹1.5/page for B&W, ₹5/page for color
+        xerox_price_per_page = 1.5 if color_mode == "bw" else 5.0
+        xerox_copies = copies - 1
+        estimated_cost += uploaded_pages * xerox_price_per_page * xerox_copies
+    
+    # Add binding cost
+    if binding == "spiral":
+        estimated_cost += 25
+    elif binding == "soft":
+        estimated_cost += 100
     
     # Get file size
     file_size = len(merged_pdf)
@@ -114,8 +165,11 @@ def create_order(
             student_id=student_id,
             instructions=instructions,
             color_mode=color_mode,
+            paper_type=paper_type,
             print_sides=print_sides,
             copies=copies,
+            page_size=page_size,
+            binding=binding,
             total_pages=total_pages,
             estimated_cost=estimated_cost,
             merged_pdf=merged_pdf,

@@ -136,6 +136,12 @@
   white-space: nowrap;
 }
 
+.pageCount {
+  color: var(--text-muted);
+  font-size: 0.85em;
+  margin-left: 8px;
+}
+
 .deleteButton {
   background: transparent;
   border: none;
