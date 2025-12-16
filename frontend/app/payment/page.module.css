@@ -119,6 +119,53 @@
   font-size: 1rem;
 }
 
+.qrCodeContainer {
+  display: flex;
+  justify-content: center;
+  margin: 1rem 0;
+}
+
+.qrCode {
+  max-width: 200px;
+  max-height: 200px;
+  border-radius: 12px;
+  border: 2px solid var(--card-border);
+  background: white;
+  padding: 8px;
+}
+
+.qrLoading {
+  width: 200px;
+  height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  border: 2px solid var(--card-border);
+  background: var(--bg-secondary);
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.upiIntentButton {
+  display: inline-block;
+  background: linear-gradient(135deg, var(--aurora-cyan) 0%, var(--aurora-purple) 100%);
+  color: white;
+  font-weight: 600;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  text-decoration: none;
+  text-align: center;
+  margin: 1rem 0;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(0, 212, 255, 0.3);
+}
+
+.upiIntentButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 212, 255, 0.4);
+}
+
 /* Screenshot Upload Section */
 .screenshotSection {
   margin-top: 1.5rem;

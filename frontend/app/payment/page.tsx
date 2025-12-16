@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import QRCode from 'qrcode'
 import styles from './page.module.css'
 import { useOrder } from '../context/OrderContext'
 import { submitOrder, verifyPaymentScreenshot, getPaymentUpiId } from '../lib/api'
@@ -16,6 +17,7 @@ export default function Payment() {
     const [transactionId, setTransactionId] = useState<string | null>(null)
     const [verificationErrors, setVerificationErrors] = useState<string[]>([])
     const [managerUpiId, setManagerUpiId] = useState<string>('')
+    const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string>('')
     const fileInputRef = useRef<HTMLInputElement>(null)
     const router = useRouter()
     
@@ -53,6 +55,29 @@ export default function Payment() {
         }
         fetchUpiId()
     }, [])
+
+    // Generate QR code from UPI Intent
+    useEffect(() => {
+        const generateQR = async () => {
+            if (!managerUpiId || estimatedCost <= 0) return
+            
+            const upiUrl = `upi://pay?pa=${managerUpiId}&pn=Xerox%20Service&am=${estimatedCost.toFixed(2)}&cu=INR`
+            try {
+                const dataUrl = await QRCode.toDataURL(upiUrl, {
+                    width: 200,
+                    margin: 2,
+                    color: {
+                        dark: '#000000',
+                        light: '#ffffff'
+                    }
+                })
+                setQrCodeDataUrl(dataUrl)
+            } catch (err) {
+                console.error('Failed to generate QR code:', err)
+            }
+        }
+        generateQR()
+    }, [managerUpiId, estimatedCost])
 
     const colorModeDisplay = printConfig.colorMode === 'color' ? 'Color' : 'B&W'
     const paperTypeDisplay = printConfig.paperType === 'photopaper' ? 'Photo Paper' : 'Normal Paper'
@@ -197,6 +222,23 @@ export default function Payment() {
                                 <span className={styles.upiLabel}>UPI ID:</span>
                                 <span className={styles.upiValue}>{managerUpiId || 'Loading...'}</span>
                             </div>
+                            <div className={styles.qrCodeContainer}>
+                                {qrCodeDataUrl ? (
+                                    <img 
+                                        src={qrCodeDataUrl} 
+                                        alt="Payment QR Code" 
+                                        className={styles.qrCode}
+                                    />
+                                ) : (
+                                    <div className={styles.qrLoading}>Generating QR...</div>
+                                )}
+                            </div>
+                            <a 
+                                href={`upi://pay?pa=${managerUpiId}&am=${estimatedCost.toFixed(2)}&cu=INR&pn=Xerox%20Service`}
+                                className={styles.upiIntentButton}
+                            >
+                                Pay with UPI App
+                            </a>
                             <p>2. Take a screenshot of the payment confirmation</p>
                             <p>3. Upload the screenshot below</p>
                         </div>
